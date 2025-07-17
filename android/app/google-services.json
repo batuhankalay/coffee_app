@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "366951136980",
+    "firebase_url": "https://flutter-yt-firebase-bkmax-default-rtdb.firebaseio.com",
+    "project_id": "flutter-yt-firebase-bkmax",
+    "storage_bucket": "flutter-yt-firebase-bkmax.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366951136980:android:9b2f5f16d18105e8598541",
+        "android_client_info": {
+          "package_name": "com.example.coffe_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATVQ9kGlC_3NKbiRgZ7lFLT2IlXlmuMac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:366951136980:android:912fb69b7837c931598541",
+        "android_client_info": {
+          "package_name": "com.example.flutter_yt_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATVQ9kGlC_3NKbiRgZ7lFLT2IlXlmuMac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
