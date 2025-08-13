@@ -1,4 +1,4 @@
-# coffe_app
+# Coffee App
 
 Coffee App, Flutter ile geliştirilen, kahve ürünlerini listeleme, arama ve detaylarını görüntüleme özelliklerine sahip bir mobil uygulamadır. Modern bir arayüz, ürün detay sayfaları ve esnek arama deneyimi sunar.
 
