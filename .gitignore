@@ -12,7 +12,8 @@
 .swiftpm/
 migrate_working_dir/
 .firebase.json
-.firebase_options.dart
+**/firebase_options.dart
+.assets/images/
 
 
 # IntelliJ related
