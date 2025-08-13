@@ -26,7 +26,7 @@ class Restaurant {
       '20-30 dk',
       '2.4 km',
       'Restoran',
-      'assets/images/logokahve.png',
+      'assets/images/isletme.png',
       'Küçük bir yudum, büyük bir an.',
       4.7,
       {

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coffe_app/models/food.dart';
 import 'package:flutter/material.dart';
 
-const String demoUserId = "demo_user_123";
+const String demoUserId = "Batuhan KALAY";
 
 Future<List<Food>> fetchFoods() async {
   try {
@@ -35,7 +35,7 @@ Future<void> postFood(Food food) {
 
 
 
-Future<void> addToCart(BuildContext context, String name, String id, String imageUrl, num totalPrice, num quantity) async {
+Future<void> addToCart(BuildContext context, String name, String id, String imageUrl, num totalPrice, num quantity, String? size, num extraPrice, String? sugarType) async {
   try {
     final cartRef = FirebaseFirestore.instance
         .collection('users')
@@ -47,7 +47,10 @@ Future<void> addToCart(BuildContext context, String name, String id, String imag
       'name': name,
       'price': totalPrice,
       'quantity': quantity,
+      'size': size,
+      'extraPrice': extraPrice,
       'imageUrl': imageUrl,
+      'sugarType': sugarType,
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -136,6 +139,9 @@ Future<void> completeOrder(BuildContext context, String userId, List<Map<String,
         'price': item['price'],
         'quantity': item['quantity'],
         'imageUrl': item['imageUrl'],
+        'size': item['size'],
+        'extraPrice': item['extraPrice'],
+        'sugarType': item['sugarType']
       }).toList(),
       'createdAt': FieldValue.serverTimestamp(),
     });

@@ -9,7 +9,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  final String userId = "demo_user_123";
+  final String userId = "Batuhan KALAY";
   bool isLoading = true;
   List<Map<String, dynamic>> cartItems = [];
 
@@ -79,12 +79,13 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     double totalPrice =
-        cartItems.fold(0, (sum, item) => sum + (item['price'] ?? 0) * (item['quantity'] ?? 1));
+        cartItems.fold(0, (sum, item) => sum + (item['price'] ?? 0));
 
     return Scaffold(
       backgroundColor: kBackground,
       appBar: AppBar(
         title: Text('Sepetim'),
+        centerTitle: true,
         backgroundColor: kBackground,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -125,7 +126,7 @@ class _CartPageState extends State<CartPage> {
                                 )
                               : Icon(Icons.coffee, size: 50),
                           title: Text(item['name'] ?? 'Ürün', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                          subtitle: Text('${item['quantity'] ?? 1} adet'),
+                          subtitle: Text('${item['quantity'] ?? 1} Adet \u2022 ${item['size']} \u2022 ${item['sugarType']}'),
                           trailing: Text(
                               '${((item['price'] ?? 0) as num).toStringAsFixed(2)} TL',
                               style: TextStyle(fontSize: 15)),

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:coffe_app/constans/colors.dart';
-import 'package:coffe_app/constans/select_boys.dart';
 import 'package:coffe_app/models/food.dart';
 import 'package:coffe_app/screens/cart_page.dart';
 import 'package:coffe_app/screens/detail/widget/food_detail.dart';
@@ -8,8 +7,14 @@ import 'package:coffe_app/screens/detail/widget/food_img.dart';
 import 'package:coffe_app/screens/detail/widget/food_quantity.dart';
 import 'package:coffe_app/service/getFood.dart';
 import 'package:coffe_app/widgets/custom_app_bar.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+class SizeOption {
+  final String label;
+  final String image;
 
+  SizeOption(this.label, this.image);
+}
 class DetailPage extends StatefulWidget {
   final String? foodId;
 
@@ -24,15 +29,26 @@ class _DetailPageState extends State<DetailPage> {
   int quantity = 1;
   double unitPrice = 0;
   double totalPrice = 0;
+  double extraPrice = 0;
+  String? size = "Küçük Boy";
+  String? sugarType = "Şekersiz";
   Food? food;
   bool isFavorited = false;
+  int selectedIndex = 0;
+
+  final List<SizeOption> sizes = [
+    SizeOption("Şekersiz", "assets/images/ske.png"),
+    SizeOption("Az Şekerli", "assets/images/ske.png"),
+    SizeOption("Orta Şekerli", "assets/images/ske.png"),
+    SizeOption("Çok Şekerli", "assets/images/ske.png"),
+  ];
   @override
   void initState() {
     super.initState();
     foodFuture = fetchFoodById();
     _checkFavoriteStatus();
   }
-  
+
   Future<void> _checkFavoriteStatus() async {
     if (widget.foodId != null) {
       bool favoriteStatus = await isFavorite(widget.foodId!);
@@ -60,17 +76,19 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   void incrementQuantity() {
-    setState(() {
-      quantity++;
-      totalPrice = unitPrice * quantity;
-    });
+    if (quantity < 40) {
+      setState(() {
+        quantity++;
+        totalPrice = ((unitPrice + extraPrice) * quantity);
+      });
+    }
   }
 
   void decrementQuantity() {
     if (quantity > 1) {
       setState(() {
         quantity--;
-        totalPrice = unitPrice * quantity;
+        totalPrice = (unitPrice + extraPrice) * quantity;
       });
     }
   }
@@ -78,12 +96,12 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, // Arkaplan için AppBar arkasını transparan yap
+      extendBodyBehindAppBar:
+          true, // Arkaplan için AppBar arkasını transparan yap
       body: Container(
-        
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/back.png'),
+            image: AssetImage('assets/images/detaybac.jpg'),
             fit: BoxFit.cover,
           ),
         ),
@@ -99,7 +117,7 @@ class _DetailPageState extends State<DetailPage> {
             if (!snapshot.hasData) {
               return Center(child: Text('Kahve bulunamadı'));
             }
-      
+
             final food = snapshot.data!;
             return Column(
               children: [
@@ -149,25 +167,30 @@ class _DetailPageState extends State<DetailPage> {
             ],
           ),
           onPressed: () {
-            foodFuture.then((food) {
-              // Önce sepete ekle
-              addToCart(
-                context,
-                food.name ?? '',
-                food.id ?? '',
-                food.imgUrl ?? '',
-                totalPrice,
-                quantity,
-              ).then((_) {
-                // Sepete ekleme başarılı olduktan sonra modal göster
-                _showCartConfirmationDialog(context, food);
-              });
-            }).catchError((error) {
-              print("Veri hatası: $error");
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Ürün bilgisi alınamadı")),
-              );
-            });
+            foodFuture
+                .then((food) {
+                  // Önce sepete ekle
+                  addToCart(
+                    context,
+                    food.name ?? '',
+                    food.id ?? '',
+                    food.imgUrl ?? '',
+                    totalPrice,
+                    quantity,
+                    size,
+                    extraPrice,
+                    sugarType,
+                  ).then((_) {
+                    // Sepete ekleme başarılı olduktan sonra modal göster
+                    _showCartConfirmationDialog(context, food);
+                  });
+                })
+                .catchError((error) {
+                  print("Veri hatası: $error");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Ürün bilgisi alınamadı")),
+                  );
+                });
           },
         ),
       ),
@@ -223,7 +246,7 @@ class _DetailPageState extends State<DetailPage> {
   Widget _buildDetailSection(Food food) {
     return Expanded(
       child: Container(
-        height: MediaQuery.of(context).size.height*0.65,
+        height: MediaQuery.of(context).size.height * 0.65,
         padding: EdgeInsets.all(25),
         color: kBackground,
         child: Column(
@@ -253,83 +276,161 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ],
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 15),
             Container(
-              
-              margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width*0.16),
+              margin: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.16,
+              ),
               padding: EdgeInsets.only(left: 20),
-             
+
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: Colors.grey.withOpacity(0.1),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                     
-                      
-                      Text(
-                        totalPrice.toStringAsFixed(2),
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            '₺',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Text(
+                            totalPrice.toStringAsFixed(2),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 4),
-                       Text(
-                        '₺',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        //width: 120,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: kPrimaryColor,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            GestureDetector(
+                              onTap: decrementQuantity,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: Text('-', style: _counterStyle()),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.only(
+                                right: 20,
+                                left: 20,
+                                top: 7,
+                                bottom: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                              ),
+                              child: Text(
+                                quantity.toString(),
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: incrementQuantity,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: Text('+', style: _counterStyle()),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  Container(
-                    //width: 120,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: kPrimaryColor,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        GestureDetector(
-                          onTap: decrementQuantity,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: Text('-', style: _counterStyle()),
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.only(right: 20,left: 20, top: 7, bottom: 7),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                          ),
-                          child: Text(
-                            quantity.toString(),
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: incrementQuantity,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Text('+', style: _counterStyle()),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
-      
-            SizedBox(height: 30),
+           /* Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Boy',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),*/
+            SizedBox(height: 20),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.all(Radius.circular(50)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: DropdownButton(
+                  dropdownColor: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  items: ['Küçük Boy', 'Orta Boy', 'Büyük Boy', 'Extra Boy']
+                      .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      })
+                      .toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      size = newValue;
+                      switch(newValue){
+                        case 'Küçük Boy':
+                          extraPrice = 0;                        
+                          totalPrice = ((unitPrice + extraPrice) * quantity);
+                          break;
+                        case 'Orta Boy':
+                          extraPrice = 10;
+                          totalPrice = ((unitPrice + extraPrice) * quantity);
+                          break;
+                        case 'Büyük Boy':
+                          extraPrice = 20;
+                          totalPrice = ((unitPrice + extraPrice) * quantity);
+                          break;
+                        case 'Extra Boy':
+                          extraPrice = 30;
+                          totalPrice = ((unitPrice + extraPrice) * quantity);
+                          break;
+                      }
+                    });
+                  },
+                  value: size,
+                  hint: Text(
+                    'Boy seçiniz...',
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                  underline: SizedBox(),
+                ),
+              ),
+            ),
+            SizedBox(height: 15),
             Row(
               children: [
                 Text(
@@ -338,9 +439,59 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            SizeSelector(),
-            SizedBox(height: 30),
+            SizedBox(height: 15),
+            Container(
+              height: 110,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: sizes.length,
+                separatorBuilder: (_, index) => SizedBox(width: 15),
+                itemBuilder: (context, index) {
+                  final size = sizes[index];
+                  final isSelected = selectedIndex == index;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedIndex = index;
+                        sugarType = sizes[index].label;
+                      });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.white : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected ? Color(0xFFFEC907) : Colors.grey.shade300,
+                          width: 2,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            size.image,
+                            width: 30,
+                            height: 52,
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            size.label,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? Colors.black : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 15),
             Row(
               children: [
                 Text(
@@ -372,7 +523,7 @@ class _DetailPageState extends State<DetailPage> {
       isFavorited = result;
     });
   }
-  
+
   // Sepete ekledikten sonra gösterilen onay dialoğu
   void _showCartConfirmationDialog(BuildContext context, Food food) {
     showDialog(
@@ -384,22 +535,19 @@ class _DetailPageState extends State<DetailPage> {
           ),
           child: Container(
             padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Başlık ve ikonu
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 60,
-                ),
+                Icon(Icons.check_circle, color: Colors.green, size: 60),
                 SizedBox(height: 15),
                 Text(
                   "Sepete Eklendi",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
                 // Ürün bilgileri
@@ -427,8 +575,12 @@ class _DetailPageState extends State<DetailPage> {
                           ),
                           SizedBox(height: 5),
                           Text(
-                            "$quantity adet - ${totalPrice.toStringAsFixed(2)} TL",
+                            "$quantity Adet \u2022 $size \u2022 $sugarType",
                             style: TextStyle(color: Colors.grey[700]),
+                          ),
+                          Text(
+                            "${totalPrice.toStringAsFixed(2)} TL",
+                             style: TextStyle(color: Colors.grey[700]),
                           ),
                         ],
                       ),
@@ -466,10 +618,10 @@ class _DetailPageState extends State<DetailPage> {
                         onPressed: () {
                           // Sepet sayfasına yönlendir
                           Navigator.pop(context); // Dialog'u kapat
-                           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CartPage()),
-          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => CartPage()),
+                          );
                         },
                         child: Text("Siparişe Git"),
                         style: ElevatedButton.styleFrom(

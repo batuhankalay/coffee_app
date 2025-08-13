@@ -13,10 +13,11 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with RouteAware {
   var selected = 0;
   final restaurant = Restaurant.generateRestaurant();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = "";
   
   late Future<List<Food>> _futureFoods;
@@ -39,7 +40,21 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+  
+  // RouteAware metodları - detay sayfasından geri dönüldüğünde arama temizle
+  @override
+  void didPopNext() {
+    // Detay sayfasından geri dönüldüğünde arama state'ini temizle
+    if (_searchQuery.isNotEmpty) {
+      setState(() {
+        _searchController.clear();
+        _searchQuery = "";
+      });
+    }
+    super.didPopNext();
   }
   
   void _onSearchChanged() {
@@ -72,17 +87,37 @@ class _HomePageState extends State<HomePage> {
     }
     
     return categoryFiltered
-        .where((food) =>
-            food.name?.toLowerCase().contains(_searchQuery) == true ||
-            food.about?.toLowerCase().contains(_searchQuery) == true)
+        .where((food) {
+          final query = _searchQuery.toLowerCase().trim();
+          final name = (food.name?.toLowerCase() ?? '').trim();
+          final about = (food.about?.toLowerCase() ?? '').trim();
+          final desc = (food.desc?.toLowerCase() ?? '').trim();
+          
+          bool nameMatch = name.contains(query);
+          bool aboutMatch = about.contains(query);
+          bool descMatch = desc.contains(query);
+          
+          bool isMatch = nameMatch || aboutMatch || descMatch;
+          
+
+          
+          return isMatch;
+        })
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kBackground,
-      body: Column(
+    return GestureDetector(
+      onTap: () {
+        // Başka bir yere tıklandığında arama kutusunun focus'unu kaldır
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: kBackground,
+        body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -103,6 +138,7 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: TextField(
                           controller: _searchController,
+                          focusNode: _searchFocusNode,
                           decoration: InputDecoration(
                             hintText: "Kahve veya içecek ara",
                             border: InputBorder.none,
@@ -202,6 +238,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: kPrimaryColor,
         elevation: 2,
         child: Icon(Icons.shopping_bag_outlined, color: Colors.black, size: 30),
+      ),
       ),
     );
   }
